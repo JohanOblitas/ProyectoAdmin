@@ -9,7 +9,9 @@ package Clases;
  * @author Usuario
  */
 public class Privilegio {
+    private boolean tipo; // true: Sistema; false: Objeto
     private String nombre;
+    private String objeto;
 
     public Privilegio() {
     }
@@ -20,5 +22,21 @@ public class Privilegio {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public String getObjeto() {
+        return objeto;
+    }
+
+    public void setObjeto(String objeto) {
+        this.objeto = objeto;
+    }
+
+    public boolean isTipo() {
+        return tipo;
+    }
+
+    public void setTipo(boolean tipo) {
+        this.tipo = tipo;
     }
 }

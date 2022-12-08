@@ -35,38 +35,64 @@ public class Interfaz extends javax.swing.JFrame {
         LimpiarTabla();
         DefaultTableModel tb = (DefaultTableModel) tblTabla1.getModel();
         for(Privilegio priv: listaPrivilegios){
-            tb.addRow(new Object[]{priv.getNombre()});
+            if(priv.isTipo()){
+                tb.addRow(new Object[]{priv.getNombre()});
+            }else{
+                tb.addRow(new Object[]{priv.getNombre() + " (" + priv.getObjeto() + ")"});
+            }
+            
         }
-        /*
-        String cad = "";
-        for(Privilegio priv: listaPrivilegios){
-            cad = cad + priv.getNombre() + "\n";
-        }
-        JOptionPane.showMessageDialog(this, cad, "Titulo", JOptionPane.INFORMATION_MESSAGE);
-        */
     }
     
-    public void ListarPrivilegios() {
+    public void ListarPrivilegiosSis() {
         Privilegio priv = new Privilegio();
         priv.setNombre(ListaPrivSis.getSelectedValue());
+        priv.setTipo(true);
+        listaPrivilegios.add(priv);
+        //System.out.println(priv.getNombre());
+    }
+    
+    public void ListarPrivilegiosObj(String objeto) {
+        Privilegio priv = new Privilegio();
+        priv.setNombre(ListaPrivObj.getSelectedValue());
+        priv.setTipo(false);
+        priv.setObjeto(objeto);
         listaPrivilegios.add(priv);
         //System.out.println(priv.getNombre());
     }
     
     public void GenerarScript1(){
-        String cad = "";
-        if(tRolename.getText().equalsIgnoreCase("")){
-            for(Privilegio priv: listaPrivilegios){
-                cad = cad + "GRANT " + priv.getNombre() + " TO " + tUsername.getText().toUpperCase() + ";\n";
-            }
+        if(tUsername.getText().equalsIgnoreCase("")){
+            JOptionPane.showMessageDialog(this, "Especificar nombre de usuario / rol.", "Error", JOptionPane.INFORMATION_MESSAGE);
         }else{
-            cad = cad + "CREATE ROLE " + tRolename.getText().toUpperCase() + ";\n";
-            for(Privilegio priv: listaPrivilegios){
-                cad = cad + "GRANT " + priv.getNombre() + " TO " + tRolename.getText().toUpperCase() + ";\n";
+            String cad = "";
+            if(tRolename.getText().equalsIgnoreCase("")){
+                // Si no se especifica un rol:
+                for(Privilegio priv: listaPrivilegios){
+                    if(priv.isTipo()){
+                        // Si el privilegio es de sistema:
+                        cad = cad + "GRANT " + priv.getNombre() + " TO " + tUsername.getText().toUpperCase() + ";\n";
+                    }else{
+                        // Si el privilegio es de objeto:
+                        cad = cad + "GRANT " + priv.getNombre() + " ON " + priv.getObjeto().toUpperCase() + " TO " + tUsername.getText().toUpperCase() + ";\n";
+                    }
+                }
+            }else{
+                // Si se especifica un rol:
+                cad = cad + "CREATE ROLE " + tRolename.getText().toUpperCase() + ";\n";
+                for(Privilegio priv: listaPrivilegios){
+                    if(priv.isTipo()){
+                        // Si el privilegio es de sistema:
+                        cad = cad + "GRANT " + priv.getNombre() + " TO " + tRolename.getText().toUpperCase() + ";\n";
+                    }else{
+                        // Si el privilegio es de objeto:
+                        cad = cad + "GRANT " + priv.getNombre() + " ON " + priv.getObjeto().toUpperCase() + " TO " + tRolename.getText().toUpperCase() + ";\n";
+                    }
+                }
+                cad = cad + "GRANT " + tRolename.getText().toUpperCase() + " TO " + tUsername.getText().toUpperCase() + ";";
             }
-            cad = cad + "GRANT " + tRolename.getText().toUpperCase() + " TO " + tUsername.getText().toUpperCase() + ";";
+            tScript1.setText(cad);
         }
-        tScript1.setText(cad);
     }
         
 
@@ -87,14 +113,10 @@ public class Interfaz extends javax.swing.JFrame {
         tScript1 = new javax.swing.JTextArea();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jRadioButton1 = new javax.swing.JRadioButton();
         jButton2 = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList<>();
         jLabel4 = new javax.swing.JLabel();
-        jRadioButton2 = new javax.swing.JRadioButton();
-        jRadioButton4 = new javax.swing.JRadioButton();
-        jRadioButton5 = new javax.swing.JRadioButton();
         jLabel5 = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTextArea2 = new javax.swing.JTextArea();
@@ -104,15 +126,15 @@ public class Interfaz extends javax.swing.JFrame {
         jScrollPane5 = new javax.swing.JScrollPane();
         ListaPrivSis = new javax.swing.JList<>();
         jScrollPane6 = new javax.swing.JScrollPane();
-        jList2 = new javax.swing.JList<>();
+        ListaPrivObj = new javax.swing.JList<>();
         jLabel8 = new javax.swing.JLabel();
         tRolename = new javax.swing.JTextField();
         tUsername = new javax.swing.JTextField();
         jLabel9 = new javax.swing.JLabel();
         jScrollPane4 = new javax.swing.JScrollPane();
         tblTabla1 = new javax.swing.JTable();
-        jButton3 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
+        bAgregarPrivSis = new javax.swing.JButton();
+        bAgregarPrivObj = new javax.swing.JButton();
         bLimpiar1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -124,7 +146,7 @@ public class Interfaz extends javax.swing.JFrame {
         Encabezado.setText("Privilegios y Auditoría - Grupo 9");
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        jLabel1.setText("Nombre de usuario");
+        jLabel1.setText("Nombre de usuario / rol");
 
         jButton1.setText("Generar Script");
         jButton1.setToolTipText("");
@@ -143,13 +165,6 @@ public class Interfaz extends javax.swing.JFrame {
 
         jLabel3.setText("Pregunta  2:");
 
-        jRadioButton1.setText("Usuario");
-        jRadioButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton1ActionPerformed(evt);
-            }
-        });
-
         jButton2.setText("Ver privilegios");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -166,22 +181,6 @@ public class Interfaz extends javax.swing.JFrame {
 
         jLabel4.setText("Pregunta  3:");
 
-        jRadioButton2.setText("Sesion");
-        jRadioButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton2ActionPerformed(evt);
-            }
-        });
-
-        jRadioButton4.setText("Inserts");
-
-        jRadioButton5.setText("Tablas");
-        jRadioButton5.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton5ActionPerformed(evt);
-            }
-        });
-
         jLabel5.setText("Privilegios:");
 
         jTextArea2.setColumns(20);
@@ -197,18 +196,18 @@ public class Interfaz extends javax.swing.JFrame {
         jLabel7.setText("Privilegios de Objetos");
 
         ListaPrivSis.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "ALTER SYSTEM", "AUDIT SYSTEM", "CREATE SESSION", "ALTER SESSION", "RESTRICTED SESSION", "CREATE TABLESPACE", "ALTER TABLESPACE", "MANAGE TABLESPACE", "DROP TABLESPACE", "UNLIMITED TABLESPACE", "CREATE USER", "BECOME USER", "ALTER USER", "DROP USER", "CREATE ROLLBACK SEGMENT", "ALTER ROLLBACK SEGMENT", "DROP ROLLBACK SEGMENT", "CREATE TABLE", "CREATE ANY TABLE", "ALTER ANY TABLE", "BACKUP ANY TABLE", "DROP ANY TABLE", "LOCK ANY TABLE", "COMMENT ANY TABLE", "SELECT ANY TABLE", "INSERT ANY TABLE", "UPDATE ANY TABLE", "DELETE ANY TABLE", "REDEFINE ANY TABLE", "CREATE CLUSTER", "CREATE ANY CLUSTER", "ALTER ANY CLUSTER", "DROP ANY CLUSTER", "CREATE ANY INDEX", "ALTER ANY INDEX", "DROP ANY INDEX", "CREATE SYNONYM", "CREATE ANY SYNONYM", "DROP ANY SYNONYM", "SYSDBA", "SYSOPER", "CREATE PUBLIC SYNONYM", "DROP PUBLIC SYNONYM", "CREATE VIEW", "CREATE ANY VIEW", "DROP ANY VIEW", "CREATE SEQUENCE", "CREATE ANY SEQUENCE", "ALTER ANY SEQUENCE", "DROP ANY SEQUENCE", "SELECT ANY SEQUENCE", "CREATE DATABASE LINK", "CREATE PUBLIC DATABASE LINK", "DROP PUBLIC DATABASE LINK", "CREATE ROLE", "DROP ANY ROLE", "GRANT ANY ROLE", "ALTER ANY ROLE", "AUDIT ANY", "ALTER DATABASE", "FORCE TRANSACTION", "FORCE ANY TRANSACTION", "CREATE PROCEDURE", "CREATE ANY PROCEDURE", "ALTER ANY PROCEDURE", "DROP ANY PROCEDURE", "EXECUTE ANY PROCEDURE", "CREATE TRIGGER", "CREATE ANY TRIGGER", "ALTER ANY TRIGGER", "DROP ANY TRIGGER", "CREATE PROFILE", "ALTER PROFILE", "DROP PROFILE", "ALTER RESOURCE COST", "ANALYZE ANY", "GRANT ANY PRIVILEGE", "CREATE MATERIALIZED VIEW", "CREATE ANY MATERIALIZED VIEW", "ALTER ANY MATERIALIZED VIEW", "DROP ANY MATERIALIZED VIEW", "CREATE ANY DIRECTORY", "DROP ANY DIRECTORY", "CREATE TYPE", "CREATE ANY TYPE", "ALTER ANY TYPE", "DROP ANY TYPE", "EXECUTE ANY TYPE", "UNDER ANY TYPE", "CREATE LIBRARY", "CREATE ANY LIBRARY", "ALTER ANY LIBRARY", "DROP ANY LIBRARY", "EXECUTE ANY LIBRARY", "CREATE OPERATOR", "CREATE ANY OPERATOR", "ALTER ANY OPERATOR", "DROP ANY OPERATOR", "EXECUTE ANY OPERATOR", "CREATE INDEXTYPE", "CREATE ANY INDEXTYPE", "ALTER ANY INDEXTYPE", "DROP ANY INDEXTYPE", "UNDER ANY VIEW", "QUERY REWRITE", "GLOBAL QUERY REWRITE", "EXECUTE ANY INDEXTYPE", "UNDER ANY TABLE", "CREATE DIMENSION", "CREATE ANY DIMENSION", "ALTER ANY DIMENSION", "DROP ANY DIMENSION", "MANAGE ANY QUEUE", "ENQUEUE ANY QUEUE", "DEQUEUE ANY QUEUE", "CREATE ANY CONTEXT", "DROP ANY CONTEXT", "CREATE ANY OUTLINE", "ALTER ANY OUTLINE", "DROP ANY OUTLINE", "ADMINISTER RESOURCE MANAGER", "ADMINISTER DATABASE TRIGGER", "MERGE ANY VIEW", "ON COMMIT REFRESH", "EXEMPT ACCESS POLICY", "RESUMABLE", "SELECT ANY DICTIONARY", "DEBUG CONNECT SESSION", "DEBUG CONNECT ANY", "DEBUG ANY PROCEDURE", "FLASHBACK ANY TABLE", "GRANT ANY OBJECT PRIVILEGE", "CREATE EVALUATION CONTEXT", "CREATE ANY EVALUATION CONTEXT", "ALTER ANY EVALUATION CONTEXT", "DROP ANY EVALUATION CONTEXT", "EXECUTE ANY EVALUATION CONTEXT", "CREATE RULE SET", "CREATE ANY RULE SET", "ALTER ANY RULE SET", "DROP ANY RULE SET", "EXECUTE ANY RULE SET", "EXPORT FULL DATABASE", "IMPORT FULL DATABASE", "CREATE RULE", "CREATE ANY RULE", "ALTER ANY RULE", "DROP ANY RULE", "EXECUTE ANY RULE", "ANALYZE ANY DICTIONARY", "ADVISOR", "CREATE JOB", "CREATE ANY JOB", "EXECUTE ANY PROGRAM", "EXECUTE ANY CLASS", "MANAGE SCHEDULER", "SELECT ANY TRANSACTION", "DROP ANY SQL PROFILE", "ALTER ANY SQL PROFILE", "ADMINISTER SQL TUNING SET", "ADMINISTER ANY SQL TUNING SET", "CREATE ANY SQL PROFILE", "EXEMPT IDENTITY POLICY", "MANAGE FILE GROUP", "MANAGE ANY FILE GROUP", "READ ANY FILE GROUP", "CHANGE NOTIFICATION", "CREATE EXTERNAL JOB", "CREATE ANY EDITION", "DROP ANY EDITION", "ALTER ANY EDITION", "CREATE ASSEMBLY", "CREATE ANY ASSEMBLY", "ALTER ANY ASSEMBLY", "DROP ANY ASSEMBLY", "EXECUTE ANY ASSEMBLY", "EXECUTE ASSEMBLY", "CREATE MINING MODEL", "CREATE ANY MINING MODEL", "DROP ANY MINING MODEL", "SELECT ANY MINING MODEL", "ALTER ANY MINING MODEL", "COMMENT ANY MINING MODEL", "CREATE CUBE DIMENSION", "ALTER ANY CUBE DIMENSION", "CREATE ANY CUBE DIMENSION", "DELETE ANY CUBE DIMENSION", "DROP ANY CUBE DIMENSION", "INSERT ANY CUBE DIMENSION", "SELECT ANY CUBE DIMENSION", "CREATE CUBE", "ALTER ANY CUBE", "CREATE ANY CUBE", "DROP ANY CUBE", "SELECT ANY CUBE", "UPDATE ANY CUBE", "CREATE MEASURE FOLDER", "CREATE ANY MEASURE FOLDER", "DELETE ANY MEASURE FOLDER", "DROP ANY MEASURE FOLDER", "INSERT ANY MEASURE FOLDER", "CREATE CUBE BUILD PROCESS", "CREATE ANY CUBE BUILD PROCESS", "DROP ANY CUBE BUILD PROCESS", "UPDATE ANY CUBE BUILD PROCESS", "UPDATE ANY CUBE DIMENSION", "ADMINISTER SQL MANAGEMENT OBJECT", "ALTER PUBLIC DATABASE LINK", "ALTER DATABASE LINK", "CREATE SQL TRANSLATION PROFILE", "CREATE ANY SQL TRANSLATION PROFILE", "ALTER ANY SQL TRANSLATION PROFILE", "USE ANY SQL TRANSLATION PROFILE", "DROP ANY SQL TRANSLATION PROFILE", "SYSBACKUP", "SYSDG", "SYSKM", "ADMINISTER KEY MANAGEMENT", "KEEP DATE TIME", "KEEP SYSGUID", "EM EXPRESS CONNECT", "PURGE DBA_RECYCLEBIN", "FLASHBACK ARCHIVE ADMINISTER", "EXEMPT REDACTION POLICY", "INHERIT ANY PRIVILEGES", "TRANSLATE ANY SQL", "INHERIT ANY REMOTE PRIVILEGES", "CREATE PLUGGABLE DATABASE", "SET CONTAINER", "CREATE LOCKDOWN PROFILE", "DROP LOCKDOWN PROFILE", "ALTER LOCKDOWN PROFILE", "CREATE CREDENTIAL", "CREATE ANY CREDENTIAL", "LOGMINING", "USE ANY JOB RESOURCE", "SELECT ANY MEASURE FOLDER", "ALTER ANY MEASURE FOLDER", "SELECT ANY CUBE BUILD PROCESS", "ALTER ANY CUBE BUILD PROCESS", "READ ANY TABLE", "SYSRAC", "CREATE ATTRIBUTE DIMENSION", "CREATE ANY ATTRIBUTE DIMENSION", "ALTER ANY ATTRIBUTE DIMENSION", "DROP ANY ATTRIBUTE DIMENSION", "CREATE HIERARCHY", "CREATE ANY HIERARCHY", "ALTER ANY HIERARCHY", "DROP ANY HIERARCHY", "CREATE ANALYTIC VIEW", "CREATE ANY ANALYTIC VIEW", "ALTER ANY ANALYTIC VIEW", "DROP ANY ANALYTIC VIEW", "READ ANY ANALYTIC VIEW CACHE", "WRITE ANY ANALYTIC VIEW CACHE", "TEXT DATASTORE ACCESS" };
+            String[] strings = { "ADMINISTER ANY SQL TUNING SET", "ADMINISTER DATABASE TRIGGER", "ADMINISTER KEY MANAGEMENT", "ADMINISTER RESOURCE MANAGER", "ADMINISTER SQL MANAGEMENT OBJECT", "ADMINISTER SQL TUNING SET", "ADVISOR", "ALTER ANY ANALYTIC VIEW", "ALTER ANY ASSEMBLY", "ALTER ANY ATTRIBUTE DIMENSION", "ALTER ANY CLUSTER", "ALTER ANY CUBE", "ALTER ANY CUBE BUILD PROCESS", "ALTER ANY CUBE DIMENSION", "ALTER ANY DIMENSION", "ALTER ANY EDITION", "ALTER ANY EVALUATION CONTEXT", "ALTER ANY HIERARCHY", "ALTER ANY INDEX", "ALTER ANY INDEXTYPE", "ALTER ANY LIBRARY", "ALTER ANY MATERIALIZED VIEW", "ALTER ANY MEASURE FOLDER", "ALTER ANY MINING MODEL", "ALTER ANY OPERATOR", "ALTER ANY OUTLINE", "ALTER ANY PROCEDURE", "ALTER ANY ROLE", "ALTER ANY RULE", "ALTER ANY RULE SET", "ALTER ANY SEQUENCE", "ALTER ANY SQL PROFILE", "ALTER ANY SQL TRANSLATION PROFILE", "ALTER ANY TABLE", "ALTER ANY TRIGGER", "ALTER ANY TYPE", "ALTER DATABASE", "ALTER DATABASE LINK", "ALTER LOCKDOWN PROFILE", "ALTER PROFILE", "ALTER PUBLIC DATABASE LINK", "ALTER RESOURCE COST", "ALTER ROLLBACK SEGMENT", "ALTER SESSION", "ALTER SYSTEM", "ALTER TABLESPACE", "ALTER USER", "ANALYZE ANY", "ANALYZE ANY DICTIONARY", "AUDIT ANY", "AUDIT SYSTEM", "BACKUP ANY TABLE", "BECOME USER", "CHANGE NOTIFICATION", "COMMENT ANY MINING MODEL", "COMMENT ANY TABLE", "CREATE ANALYTIC VIEW", "CREATE ANY ANALYTIC VIEW", "CREATE ANY ASSEMBLY", "CREATE ANY ATTRIBUTE DIMENSION", "CREATE ANY CLUSTER", "CREATE ANY CONTEXT", "CREATE ANY CREDENTIAL", "CREATE ANY CUBE", "CREATE ANY CUBE BUILD PROCESS", "CREATE ANY CUBE DIMENSION", "CREATE ANY DIMENSION", "CREATE ANY DIRECTORY", "CREATE ANY EDITION", "CREATE ANY EVALUATION CONTEXT", "CREATE ANY HIERARCHY", "CREATE ANY INDEX", "CREATE ANY INDEXTYPE", "CREATE ANY JOB", "CREATE ANY LIBRARY", "CREATE ANY MATERIALIZED VIEW", "CREATE ANY MEASURE FOLDER", "CREATE ANY MINING MODEL", "CREATE ANY OPERATOR", "CREATE ANY OUTLINE", "CREATE ANY PROCEDURE", "CREATE ANY RULE", "CREATE ANY RULE SET", "CREATE ANY SEQUENCE", "CREATE ANY SQL PROFILE", "CREATE ANY SQL TRANSLATION PROFILE", "CREATE ANY SYNONYM", "CREATE ANY TABLE", "CREATE ANY TRIGGER", "CREATE ANY TYPE", "CREATE ANY VIEW", "CREATE ASSEMBLY", "CREATE ATTRIBUTE DIMENSION", "CREATE CLUSTER", "CREATE CREDENTIAL", "CREATE CUBE", "CREATE CUBE BUILD PROCESS", "CREATE CUBE DIMENSION", "CREATE DATABASE LINK", "CREATE DIMENSION", "CREATE EVALUATION CONTEXT", "CREATE EXTERNAL JOB", "CREATE HIERARCHY", "CREATE INDEXTYPE", "CREATE JOB", "CREATE LIBRARY", "CREATE LOCKDOWN PROFILE", "CREATE MATERIALIZED VIEW", "CREATE MEASURE FOLDER", "CREATE MINING MODEL", "CREATE OPERATOR", "CREATE PLUGGABLE DATABASE", "CREATE PROCEDURE", "CREATE PROFILE", "CREATE PUBLIC DATABASE LINK", "CREATE PUBLIC SYNONYM", "CREATE ROLE", "CREATE ROLLBACK SEGMENT", "CREATE RULE", "CREATE RULE SET", "CREATE SEQUENCE", "CREATE SESSION", "CREATE SQL TRANSLATION PROFILE", "CREATE SYNONYM", "CREATE TABLE", "CREATE TABLESPACE", "CREATE TRIGGER", "CREATE TYPE", "CREATE USER", "CREATE VIEW", "DEBUG ANY PROCEDURE", "DEBUG CONNECT ANY", "DEBUG CONNECT SESSION", "DELETE ANY CUBE DIMENSION", "DELETE ANY MEASURE FOLDER", "DELETE ANY TABLE", "DEQUEUE ANY QUEUE", "DROP ANY ANALYTIC VIEW", "DROP ANY ASSEMBLY", "DROP ANY ATTRIBUTE DIMENSION", "DROP ANY CLUSTER", "DROP ANY CONTEXT", "DROP ANY CUBE", "DROP ANY CUBE BUILD PROCESS", "DROP ANY CUBE DIMENSION", "DROP ANY DIMENSION", "DROP ANY DIRECTORY", "DROP ANY EDITION", "DROP ANY EVALUATION CONTEXT", "DROP ANY HIERARCHY", "DROP ANY INDEX", "DROP ANY INDEXTYPE", "DROP ANY LIBRARY", "DROP ANY MATERIALIZED VIEW", "DROP ANY MEASURE FOLDER", "DROP ANY MINING MODEL", "DROP ANY OPERATOR", "DROP ANY OUTLINE", "DROP ANY PROCEDURE", "DROP ANY ROLE", "DROP ANY RULE", "DROP ANY RULE SET", "DROP ANY SEQUENCE", "DROP ANY SQL PROFILE", "DROP ANY SQL TRANSLATION PROFILE", "DROP ANY SYNONYM", "DROP ANY TABLE", "DROP ANY TRIGGER", "DROP ANY TYPE", "DROP ANY VIEW", "DROP LOCKDOWN PROFILE", "DROP PROFILE", "DROP PUBLIC DATABASE LINK", "DROP PUBLIC SYNONYM", "DROP ROLLBACK SEGMENT", "DROP TABLESPACE", "DROP USER", "EM EXPRESS CONNECT", "ENQUEUE ANY QUEUE", "EXECUTE ANY ASSEMBLY", "EXECUTE ANY CLASS", "EXECUTE ANY EVALUATION CONTEXT", "EXECUTE ANY INDEXTYPE", "EXECUTE ANY LIBRARY", "EXECUTE ANY OPERATOR", "EXECUTE ANY PROCEDURE", "EXECUTE ANY PROGRAM", "EXECUTE ANY RULE", "EXECUTE ANY RULE SET", "EXECUTE ANY TYPE", "EXECUTE ASSEMBLY", "EXEMPT ACCESS POLICY", "EXEMPT IDENTITY POLICY", "EXEMPT REDACTION POLICY", "EXPORT FULL DATABASE", "FLASHBACK ANY TABLE", "FLASHBACK ARCHIVE ADMINISTER", "FORCE ANY TRANSACTION", "FORCE TRANSACTION", "GLOBAL QUERY REWRITE", "GRANT ANY OBJECT PRIVILEGE", "GRANT ANY PRIVILEGE", "GRANT ANY ROLE", "IMPORT FULL DATABASE", "INHERIT ANY PRIVILEGES", "INHERIT ANY REMOTE PRIVILEGES", "INSERT ANY CUBE DIMENSION", "INSERT ANY MEASURE FOLDER", "INSERT ANY TABLE", "KEEP DATE TIME", "KEEP SYSGUID", "LOCK ANY TABLE", "LOGMINING", "MANAGE ANY FILE GROUP", "MANAGE ANY QUEUE", "MANAGE FILE GROUP", "MANAGE SCHEDULER", "MANAGE TABLESPACE", "MERGE ANY VIEW", "ON COMMIT REFRESH", "PURGE DBA_RECYCLEBIN", "QUERY REWRITE", "READ ANY ANALYTIC VIEW CACHE", "READ ANY FILE GROUP", "READ ANY TABLE", "REDEFINE ANY TABLE", "RESTRICTED SESSION", "RESUMABLE", "SELECT ANY CUBE", "SELECT ANY CUBE BUILD PROCESS", "SELECT ANY CUBE DIMENSION", "SELECT ANY DICTIONARY", "SELECT ANY MEASURE FOLDER", "SELECT ANY MINING MODEL", "SELECT ANY SEQUENCE", "SELECT ANY TABLE", "SELECT ANY TRANSACTION", "SET CONTAINER", "SYSBACKUP", "SYSDBA", "SYSDG", "SYSKM", "SYSOPER", "TEXT DATASTORE ACCESS", "TRANSLATE ANY SQL", "UNDER ANY TABLE", "UNDER ANY TYPE", "UNDER ANY VIEW", "UNLIMITED TABLESPACE", "UPDATE ANY CUBE", "UPDATE ANY CUBE BUILD PROCESS", "UPDATE ANY CUBE DIMENSION", "UPDATE ANY TABLE", "USE ANY JOB RESOURCE", "USE ANY SQL TRANSLATION PROFILE", "WRITE ANY ANALYTIC VIEW CACHE" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });
         jScrollPane5.setViewportView(ListaPrivSis);
 
-        jList2.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "ALTER", "AUDIT", "COMMENT", "DELETE", "GRANT", "INDEX", "INSERT", "LOCK", "RENAME", "SELECT", "UPDATE", "REFERENCES", "EXECUTE", "CREATE", "READ", "WRITE", "ENQUEUE", "DEQUEUE", "UNDER", "ON COMMIT REFRESH", "QUERY REWRITE", "DEBUG", "FLASHBACK", "MERGE VIEW", "USE", "FLASHBACK ARCHIVE" };
+        ListaPrivObj.setModel(new javax.swing.AbstractListModel<String>() {
+            String[] strings = { "ALTER", "DEBUG", "DELETE", "EXECUTE", "FLASHBACK", "INDEX", "INSERT", "ON COMMIT REFRESH", "QUERY REWRITE", "READ", "REFERENCES", "SELECT", "UNDER", "UPDATE", "WRITE" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });
-        jScrollPane6.setViewportView(jList2);
+        jScrollPane6.setViewportView(ListaPrivObj);
 
         jLabel8.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         jLabel8.setText("Nombre de rol");
@@ -230,14 +229,19 @@ public class Interfaz extends javax.swing.JFrame {
         ));
         jScrollPane4.setViewportView(tblTabla1);
 
-        jButton3.setText("Agregar");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        bAgregarPrivSis.setText("Agregar");
+        bAgregarPrivSis.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                bAgregarPrivSisActionPerformed(evt);
             }
         });
 
-        jButton5.setText("Agregar");
+        bAgregarPrivObj.setText("Agregar");
+        bAgregarPrivObj.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bAgregarPrivObjActionPerformed(evt);
+            }
+        });
 
         bLimpiar1.setText("Limpiar");
         bLimpiar1.addActionListener(new java.awt.event.ActionListener() {
@@ -278,15 +282,11 @@ public class Interfaz extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 329, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jRadioButton2)
-                            .addComponent(jRadioButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jRadioButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(42, 42, 42))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jRadioButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -306,9 +306,9 @@ public class Interfaz extends javax.swing.JFrame {
                         .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(76, 76, 76)
-                        .addComponent(jButton3)
+                        .addComponent(bAgregarPrivSis)
                         .addGap(121, 121, 121)
-                        .addComponent(jButton5)))
+                        .addComponent(bAgregarPrivObj)))
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -320,13 +320,7 @@ public class Interfaz extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel4)
-                        .addGap(7, 7, 7)
-                        .addComponent(jRadioButton2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jRadioButton5)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jRadioButton4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGap(89, 89, 89)
                         .addComponent(jButton4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -354,8 +348,8 @@ public class Interfaz extends javax.swing.JFrame {
                                 .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton3)
-                            .addComponent(jButton5))
+                            .addComponent(bAgregarPrivSis)
+                            .addComponent(bAgregarPrivObj))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
                         .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -371,9 +365,7 @@ public class Interfaz extends javax.swing.JFrame {
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel3)
-                .addGap(18, 18, 18)
-                .addComponent(jRadioButton1)
-                .addGap(18, 18, 18)
+                .addGap(59, 59, 59)
                 .addComponent(jButton2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel5)
@@ -396,37 +388,94 @@ public class Interfaz extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jRadioButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton5ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jRadioButton5ActionPerformed
-
-    private void jRadioButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton2ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jRadioButton2ActionPerformed
-
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton2ActionPerformed
 
-    private void jRadioButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jRadioButton1ActionPerformed
-
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // Generar Script
+        // Generar Script 1
         GenerarScript1();
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        ListarPrivilegios();
-        SeleccionarDatos();
-    }//GEN-LAST:event_jButton3ActionPerformed
+    private void bAgregarPrivSisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bAgregarPrivSisActionPerformed
+        if(ListaPrivSis.getSelectedValue() != null){
+            ListarPrivilegiosSis();
+            SeleccionarDatos();
+        }else{
+            JOptionPane.showMessageDialog(this, "Especificar privilegio de sistema.", "Error", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }//GEN-LAST:event_bAgregarPrivSisActionPerformed
 
     private void bLimpiar1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bLimpiar1ActionPerformed
-        // TODO add your handling code here:
-        LimpiarTabla();
+        // Limpiar Privilegios Seleccionados
         listaPrivilegios.clear();
+        SeleccionarDatos();
     }//GEN-LAST:event_bLimpiar1ActionPerformed
+
+    private void bAgregarPrivObjActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bAgregarPrivObjActionPerformed
+        // Agregar Privilegio de Objeto
+        String Objeto = "";
+        if(ListaPrivObj.getSelectedValue() != null){
+            if(ListaPrivObj.getSelectedValue().equals("ALTER")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (TABLE, SEQUENCE): ", "ALTER", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else if(ListaPrivObj.getSelectedValue().equals("DELETE")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (TABLE, VIEW, MATERIALIZED VIEW): ", "DELETE", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else if(ListaPrivObj.getSelectedValue().equals("DEBUG")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (TABLE, VIEW, PROCEDURE, FUNCTION, PACKAGE, USER-DEFINED TYPE): ", "DEBUG", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else if(ListaPrivObj.getSelectedValue().equals("FLASHBACK")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (TABLE, VIEW, MATERIALIZED VIEW): ", "FLASHBACK", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else if(ListaPrivObj.getSelectedValue().equals("INDEX")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (TABLE): ", "INDEX", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else if(ListaPrivObj.getSelectedValue().equals("INSERT")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (TABLE, VIEW, MATERIALIZED VIEW): ", "INSERT", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else if(ListaPrivObj.getSelectedValue().equals("ON COMMIT REFRESH")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (TABLE): ", "ON COMMIT REFRESH", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else if(ListaPrivObj.getSelectedValue().equals("QUERY REWRITE")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (TABLE): ", "QUERY REWRITE", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else if(ListaPrivObj.getSelectedValue().equals("REFERENCES")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (TABLE, VIEW): ", "REFERENCES", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else if(ListaPrivObj.getSelectedValue().equals("SELECT")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (TABLE, VIEW): ", "SELECT", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else if(ListaPrivObj.getSelectedValue().equals("UPDATE")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (TABLE, VIEW, MATERIALIZED VIEW): ", "UPDATE", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else if(ListaPrivObj.getSelectedValue().equals("UNDER")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (VIEW, USER-DEFINED TYPE): ", "UNDER", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else if(ListaPrivObj.getSelectedValue().equals("EXECUTE")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (PROCEDURE, FUNCTION, PACKAGE, LIBRARY, USER-DEFINED TYPE, OPERATOR, INDEXTYPE): ", "EXECUTE", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else if(ListaPrivObj.getSelectedValue().equals("READ")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (DIRECTORY): ", "READ", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else if(ListaPrivObj.getSelectedValue().equals("WRITE")){
+                Objeto = JOptionPane.showInputDialog(this, "Especificar objeto (DIRECTORY): ", "WRITE", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else{
+                JOptionPane.showMessageDialog(this, "Error en la selección de privilegios de objeto.", "Error", JOptionPane.INFORMATION_MESSAGE);
+            }
+            
+            if (Objeto == null || Objeto.equals("")){
+                JOptionPane.showMessageDialog(this, "Especificar objeto.", "Error", JOptionPane.INFORMATION_MESSAGE);
+            } else{
+                ListarPrivilegiosObj(Objeto);
+                SeleccionarDatos();
+            }
+            
+        } else{
+            JOptionPane.showMessageDialog(this, "Especificar privilegio de objeto.", "Error", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }//GEN-LAST:event_bAgregarPrivObjActionPerformed
 
     /**
      * @param args the command line arguments
@@ -465,13 +514,14 @@ public class Interfaz extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel Encabezado;
+    private javax.swing.JList<String> ListaPrivObj;
     private javax.swing.JList<String> ListaPrivSis;
+    private javax.swing.JButton bAgregarPrivObj;
+    private javax.swing.JButton bAgregarPrivSis;
     private javax.swing.JButton bLimpiar1;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -482,12 +532,7 @@ public class Interfaz extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JList<String> jList1;
-    private javax.swing.JList<String> jList2;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JRadioButton jRadioButton1;
-    private javax.swing.JRadioButton jRadioButton2;
-    private javax.swing.JRadioButton jRadioButton4;
-    private javax.swing.JRadioButton jRadioButton5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
