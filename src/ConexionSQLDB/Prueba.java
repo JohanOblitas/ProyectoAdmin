@@ -21,7 +21,7 @@ public class Prueba {
         Usuario user = new Usuario();
         try {
             Connection conn = DataBaseConnect.getConnection();
-            String sql = "SELECT * FROM ( SELECT USERNAME FROM all_users ORDER BY created DESC) WHERE rownum = 1;";
+            String sql = "SELECT * FROM (SELECT USERNAME FROM all_users ORDER BY created DESC) WHERE rownum = 1";
             PreparedStatement pst = conn.prepareStatement(sql);
             ResultSet rs = pst.executeQuery();
             while(rs.next()){
