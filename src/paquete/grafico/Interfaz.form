@@ -105,10 +105,7 @@
                               <Component id="jRadioButton9" alignment="0" min="-2" pref="153" max="-2" attributes="0"/>
                               <Component id="jRadioButton8" alignment="0" min="-2" pref="153" max="-2" attributes="0"/>
                               <Component id="jRadioButton7" alignment="0" min="-2" pref="153" max="-2" attributes="0"/>
-                              <Group type="102" alignment="0" attributes="0">
-                                  <EmptySpace min="-2" pref="42" max="-2" attributes="0"/>
-                                  <Component id="jScrollPane2" min="-2" pref="149" max="-2" attributes="0"/>
-                              </Group>
+                              <Component id="jScrollPane2" alignment="0" min="-2" pref="149" max="-2" attributes="0"/>
                           </Group>
                       </Group>
                   </Group>
