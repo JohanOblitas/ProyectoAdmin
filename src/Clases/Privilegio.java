@@ -8,10 +8,10 @@ package Clases;
  *
  * @author Usuario
  */
-public class Usuario {
+public class Privilegio {
     private String nombre;
 
-    public Usuario() {
+    public Privilegio() {
     }
 
     public String getNombre() {
@@ -21,6 +21,4 @@ public class Usuario {
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
-    
-    
 }
