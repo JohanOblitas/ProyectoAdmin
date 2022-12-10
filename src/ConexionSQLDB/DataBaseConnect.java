@@ -9,6 +9,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -25,6 +26,7 @@ public class DataBaseConnect {
             return conn;
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
+            JOptionPane.showMessageDialog(null, ex.getMessage(), "SQL Error", JOptionPane.INFORMATION_MESSAGE);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(DataBaseConnect.class.getName()).log(Level.SEVERE, null, ex);
         }
