@@ -18,7 +18,7 @@ public class DataBaseConnect {
     public static Connection getConnection() {
         try {
             Class.forName("oracle.jdbc.OracleDriver");
-            String myDB = "jdbc:oracle:thin:@132.68.1.20:1521:PRDSID";
+            String myDB = "jdbc:oracle:thin:@//132.68.1.20:1521/pdb_dev";
             String usuario = "sys as sysdba";
             String password = "oracle";
             Connection conn = DriverManager.getConnection(myDB, usuario, password);
